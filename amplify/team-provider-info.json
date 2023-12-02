@@ -10,6 +10,23 @@
       "StackName": "amplify-awsrcj-dev-142116",
       "StackId": "arn:aws:cloudformation:us-east-1:491554107211:stack/amplify-awsrcj-dev-142116/ff55eec0-79b4-11ee-8b9d-129616fa9bcd",
       "AmplifyAppId": "d883d4yx0dfjd"
+    },
+    "categories": {
+      "auth": {
+        "awsrcje7ee1f46": {}
+      },
+      "function": {
+        "awsrcjlayer50525934": {
+          "deploymentBucketName": "amplify-awsrcj-dev-142116-deployment",
+          "s3Key": "amplify-builds/awsrcjlayer50525934-LambdaLayerVersionf2594919-build.zip"
+        }
+      },
+      "storage": {
+        "s39285eefe": {}
+      },
+      "api": {
+        "awsrcj": {}
+      }
     }
   }
 }

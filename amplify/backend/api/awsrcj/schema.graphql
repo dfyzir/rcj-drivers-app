@@ -1,0 +1,10 @@
+type TrailerRCJ @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  chassisNumber: String
+  vinNumber: String
+  plateNumber: String
+  inspectionExpiresAt: AWSDate
+  inspectionFile: String
+  registrationExpiresAt: AWSDate
+  registrationFile: String
+}
