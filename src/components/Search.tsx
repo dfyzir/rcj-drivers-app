@@ -1,24 +1,28 @@
 import { TrailerRCJ } from "@/API";
 import { Button, Input } from "@nextui-org/react";
 import { useRouter } from "next/router";
-import { SetStateAction } from "react";
+import { SetStateAction, useEffect, useMemo, useState } from "react";
 
 type SearchProps = {
-  value: string | string[] | undefined;
-  setValue: (value: SetStateAction<string | string[] | undefined>) => void;
   setTrailers: (value: SetStateAction<TrailerRCJ[]>) => void;
-  search: string | string[] | undefined;
 };
 
-const Search = ({ value, setValue, setTrailers, search }: SearchProps) => {
+const Search = ({ setTrailers }: SearchProps) => {
   const router = useRouter();
+  const { replace } = useRouter();
+  const { search } = router.query;
+
+  const [value, setValue] = useState("");
+  useEffect(() => {
+    setValue(search as string);
+  }, [search]);
 
   const handleChange = (input: string) => {
     setValue(input);
   };
 
   const handleSearch = () => {
-    router.push(`/?search=${value}`, undefined, { shallow: true });
+    replace(`/?search=${value}`);
   };
 
   const handleClear = () => {
@@ -36,7 +40,7 @@ const Search = ({ value, setValue, setTrailers, search }: SearchProps) => {
           size="sm"
           type="search"
           placeholder="Enter chassis number"
-          value={value as string}
+          value={value}
           onValueChange={handleChange}
         />
         <Button

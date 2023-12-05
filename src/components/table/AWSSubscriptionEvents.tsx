@@ -1,7 +1,7 @@
 import { SetStateAction, useEffect } from "react";
 
 import { generateClient } from "aws-amplify/api";
-import { remove } from "aws-amplify/storage";
+
 import { GraphQLSubscription } from "@aws-amplify/api";
 
 import {
@@ -16,13 +16,12 @@ import {
   onUpdateTrailerRCJ,
   onDeleteTrailerRCJ,
 } from "@/graphql/subscriptions";
-import { on } from "events";
 
-type SubscriptionDummyProps = {
+type AWSSubscriptionEventsProps = {
   setTrailers: (value: SetStateAction<TrailerRCJ[]>) => void;
 };
 
-const SubscriptionDummy = ({ setTrailers }: SubscriptionDummyProps) => {
+const AWSSubscriptionEvents = ({ setTrailers }: AWSSubscriptionEventsProps) => {
   useEffect(() => {
     const client = generateClient();
 
@@ -76,4 +75,4 @@ const SubscriptionDummy = ({ setTrailers }: SubscriptionDummyProps) => {
   return null;
 };
 
-export default SubscriptionDummy;
+export default AWSSubscriptionEvents;

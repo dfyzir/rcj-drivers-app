@@ -1,9 +1,6 @@
 import { TrailerRCJ } from "@/API";
 
 import {
-  Button,
-  Input,
-  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +15,7 @@ import { ExpiredWarningIcon } from "../icons/ExpiredWarningIcon";
 import { ExpireSoonWarningIcon } from "../icons/ExpireSoonWarningIcon";
 import ViewButtonAWS from "../buttons/ViewButtonAWS";
 import { useCheckDate } from "@/hooks/useCheckDate";
-import SubscriptionDummy from "./SubscriptionDummy";
+import AWSSubscriptionEvents from "./AWSSubscriptionEvents";
 
 type TableProps = {
   trailers: TrailerRCJ[];
@@ -48,7 +45,7 @@ const TableChassis = ({ trailers, setTrailers }: TableProps) => {
   );
   return (
     <div className="container mx-auto mt-10 mb-10">
-      <SubscriptionDummy setTrailers={setTrailers} />
+      <AWSSubscriptionEvents setTrailers={setTrailers} />
       {trailers && (
         <div className="w-[90%] mx-auto ">
           <Table

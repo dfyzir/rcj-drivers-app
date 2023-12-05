@@ -17,7 +17,6 @@ function Home() {
   const router = useRouter();
   const client = generateClient();
   let { search } = router.query;
-  const [value, setValue] = useState(search);
   const [trailers, setTrailers] = useState<Array<TrailerRCJ>>([]);
 
   const getTrailersRCJ = async (input: string) => {
@@ -57,12 +56,7 @@ function Home() {
         </a>
       </div>
       <div className="flex flex-col bg-[url('../../public/rcj_background.jpg')] bg-opacity-10 w-full mt-4 h-[300px] md:h-[400px] md:mt-8 items-center gap-3 bg-cover bg-center shadow-lg  backdrop-blur-xs">
-        <Search
-          value={value}
-          setValue={setValue}
-          setTrailers={setTrailers}
-          search={search}
-        />
+        <Search setTrailers={setTrailers} />
       </div>
       <TableChassis trailers={trailers} setTrailers={setTrailers} />
     </div>
