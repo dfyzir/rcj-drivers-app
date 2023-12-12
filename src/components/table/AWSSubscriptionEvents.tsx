@@ -55,7 +55,6 @@ const AWSSubscriptionEvents = ({
       })
       .subscribe({
         next: ({ data }) => {
-          console.log("Subsr", data);
           setTrailers((prevItems: TrailerRCJ[]) =>
             prevItems.map((trailer: TrailerRCJ) =>
               trailer.id === data.onUpdateTrailerRCJ?.id
