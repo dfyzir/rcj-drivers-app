@@ -11,10 +11,10 @@ const Search = ({ setTrailers }: SearchProps) => {
   const router = useRouter();
   const { replace } = useRouter();
   const { search } = router.query;
-
   const [value, setValue] = useState("");
+
   useEffect(() => {
-    setValue(search as string);
+    search != null ? setValue(search as string) : "";
   }, [search]);
 
   const handleChange = (input: string) => {
@@ -22,14 +22,15 @@ const Search = ({ setTrailers }: SearchProps) => {
   };
 
   const handleSearch = () => {
-    replace(`/?search=${value}`);
+    replace(`/?search=${value.replace(/\s/g, "")}`);
   };
 
   const handleClear = () => {
-    router.push("/");
+    replace("/");
     setValue("");
     setTrailers([]);
   };
+
   return (
     <div className="w-full mx-auto my-auto text-center">
       <div className="flex justify-center items-center w-4/5 gap-2 mx-auto mb-4 xl:w-1/2">
@@ -44,6 +45,7 @@ const Search = ({ setTrailers }: SearchProps) => {
           onValueChange={handleChange}
         />
         <Button
+          isDisabled={value.replace(/\s/g, "").length !== 10}
           size="lg"
           color="primary"
           radius="sm"

@@ -45,7 +45,7 @@ const TableChassis = ({ trailers, setTrailers }: TableProps) => {
   );
   return (
     <div className="container mx-auto mt-10 mb-10">
-      <AWSSubscriptionEvents setTrailers={setTrailers} />
+      <AWSSubscriptionEvents setTrailers={setTrailers} trailer={trailers[0]} />
       {trailers && (
         <div className="w-[90%] mx-auto ">
           <Table

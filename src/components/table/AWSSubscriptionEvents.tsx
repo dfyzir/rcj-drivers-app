@@ -16,12 +16,23 @@ import {
   onUpdateTrailerRCJ,
   onDeleteTrailerRCJ,
 } from "@/graphql/subscriptions";
+import { useRouter } from "next/router";
 
 type AWSSubscriptionEventsProps = {
   setTrailers: (value: SetStateAction<TrailerRCJ[]>) => void;
+  trailer: TrailerRCJ;
 };
 
-const AWSSubscriptionEvents = ({ setTrailers }: AWSSubscriptionEventsProps) => {
+const AWSSubscriptionEvents = ({
+  setTrailers,
+  trailer,
+}: AWSSubscriptionEventsProps) => {
+  const router = useRouter();
+  const { replace } = useRouter();
+
+  const chassisId = trailer?.id;
+  const { search } = router.query;
+
   useEffect(() => {
     const client = generateClient();
 
@@ -44,6 +55,7 @@ const AWSSubscriptionEvents = ({ setTrailers }: AWSSubscriptionEventsProps) => {
       })
       .subscribe({
         next: ({ data }) => {
+          console.log("Subsr", data);
           setTrailers((prevItems: TrailerRCJ[]) =>
             prevItems.map((trailer: TrailerRCJ) =>
               trailer.id === data.onUpdateTrailerRCJ?.id
@@ -51,6 +63,12 @@ const AWSSubscriptionEvents = ({ setTrailers }: AWSSubscriptionEventsProps) => {
                 : trailer
             )
           );
+          if (
+            data.onUpdateTrailerRCJ?.id === chassisId &&
+            search !== data.onUpdateTrailerRCJ?.chassisNumber
+          ) {
+            replace(`/?search=${data.onUpdateTrailerRCJ?.chassisNumber}`);
+          }
         },
       });
 
@@ -71,7 +89,7 @@ const AWSSubscriptionEvents = ({ setTrailers }: AWSSubscriptionEventsProps) => {
       updateSubscription.unsubscribe();
       deleteSubscription.unsubscribe();
     };
-  }, [setTrailers]);
+  }, [chassisId, replace, search, setTrailers]);
   return null;
 };
 
