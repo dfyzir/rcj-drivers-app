@@ -60,6 +60,7 @@ export declare type TrailerRCJUpdateFormProps = React.PropsWithChildren<{
     onSubmit?: (fields: TrailerRCJUpdateFormInputValues) => TrailerRCJUpdateFormInputValues;
     onSuccess?: (fields: TrailerRCJUpdateFormInputValues) => void;
     onError?: (fields: TrailerRCJUpdateFormInputValues, errorMessage: string) => void;
+    onCancel?: () => void;
     onChange?: (fields: TrailerRCJUpdateFormInputValues) => TrailerRCJUpdateFormInputValues;
     onValidate?: TrailerRCJUpdateFormValidationValues;
 } & React.CSSProperties>;

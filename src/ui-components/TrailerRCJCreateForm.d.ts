@@ -58,6 +58,7 @@ export declare type TrailerRCJCreateFormProps = React.PropsWithChildren<{
     onSubmit?: (fields: TrailerRCJCreateFormInputValues) => TrailerRCJCreateFormInputValues;
     onSuccess?: (fields: TrailerRCJCreateFormInputValues) => void;
     onError?: (fields: TrailerRCJCreateFormInputValues, errorMessage: string) => void;
+    onCancel?: () => void;
     onChange?: (fields: TrailerRCJCreateFormInputValues) => TrailerRCJCreateFormInputValues;
     onValidate?: TrailerRCJCreateFormValidationValues;
 } & React.CSSProperties>;

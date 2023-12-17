@@ -1,4 +1,11 @@
-type TrailerRCJ @model @auth(rules: [{ allow: public }]) {
+type ChassisLocation @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  chassisNumber: String!
+  location: String
+  container: String
+}
+
+type TrailerRCJ @model @auth(rules: [{allow: public}]) {
   id: ID!
   chassisNumber: String
   vinNumber: String
@@ -7,4 +14,4 @@ type TrailerRCJ @model @auth(rules: [{ allow: public }]) {
   inspectionFile: String
   registrationExpiresAt: AWSDate
   registrationFile: String
-}
+} 
