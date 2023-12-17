@@ -94,6 +94,10 @@ const ViewButtonAWS = ({ trailer }: { trailer: TrailerRCJ }) => {
               <h3
                 className={`text-center mt-4 text-xl font-semibold ${
                   isExpired(trailer.inspectionExpiresAt) ? "text-red-500" : null
+                } ${
+                  isExpireSoon(trailer.inspectionExpiresAt)
+                    ? "text-orange-500"
+                    : null
                 }`}>
                 {isExpired(trailer.inspectionExpiresAt!)
                   ? "Expired"
@@ -134,6 +138,10 @@ const ViewButtonAWS = ({ trailer }: { trailer: TrailerRCJ }) => {
                   className={`text-center mt-4 text-xl font-semibold ${
                     isExpired(trailer.registrationExpiresAt)
                       ? "text-red-500"
+                      : null
+                  } ${
+                    isExpireSoon(trailer.registrationExpiresAt)
+                      ? "text-orange-500"
                       : null
                   }`}>
                   {isExpired(trailer.registrationExpiresAt!)
