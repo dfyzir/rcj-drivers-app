@@ -1,26 +1,28 @@
 import React from "react";
 import { Amplify } from "aws-amplify";
 import config from "@/amplifyconfiguration.json";
-import { Authenticator, withAuthenticator } from "@aws-amplify/ui-react";
-
+import { Authenticator } from "@aws-amplify/ui-react";
 import "@/styles/globals.css";
 import "@aws-amplify/ui-react/styles.css";
-
 import type { AppProps } from "next/app";
-
-import { NextUIProvider } from "@nextui-org/react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Head from "next/head";
+import { appWithTranslation } from "next-i18next";
 
 Amplify.configure(config, {
   ssr: true,
 });
 
 function App({ Component, pageProps }: AppProps) {
+  const theme = createTheme({
+    colorSchemes: {
+      dark: true,
+    },
+  });
   return (
-    <Authenticator.Provider>
-      <NextUIProvider>
+    <ThemeProvider theme={theme} defaultMode="light">
+      <Authenticator.Provider>
         <Head>
-          {/* Add other global metadata tags here */}
           <title>RCJ Driver</title>
           <meta name="description" content="Find docs for the RCJ's chassis" />
           <meta
@@ -29,8 +31,8 @@ function App({ Component, pageProps }: AppProps) {
           />
         </Head>
         <Component {...pageProps} />
-      </NextUIProvider>
-    </Authenticator.Provider>
+      </Authenticator.Provider>
+    </ThemeProvider>
   );
 }
-export default App;
+export default appWithTranslation(App);

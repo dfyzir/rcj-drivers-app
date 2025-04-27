@@ -11,10 +11,10 @@ export const ExpiredWarningIcon = ({
     {...props}
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
-    viewBox="0 0 24 24"
+    viewBox={`0 0 ${size} ${size}`}
     strokeWidth="1.5"
-    stroke="red"
-    className="w-8 h-8">
+    stroke={props?.stroke ?? "red"}
+    className={`w-8 h-8 ${props.className}`}>
     <path
       strokeLinecap="round"
       strokeLinejoin="round"

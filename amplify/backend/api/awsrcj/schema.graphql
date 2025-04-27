@@ -1,3 +1,31 @@
+type NewDriverPersonalInfo @model @auth(rules: [{allow: public, operations: [create]}]) {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  middleName: String
+  datOfBirth: AWSDate!
+  socialSecurityNumber: Int!
+  primaryPhoneNumber: String!
+  altPhoneNumber: String
+  licenseNumber: Int!
+  licenseCategory: String!
+  licenseState: String!
+  licenseExpirationDate: AWSDate!
+  primaryAddress: String!
+  primaryCity: String!
+  primaryState: String!
+  primaryZip: Int!
+  secondaryAddress: String
+  secondaryCity: String
+  secondaryState: String
+  secondaryZip: Int
+  drivingExperience: [AWSJSON]
+  accidentHistory: [AWSJSON]
+  criminalHistory: [AWSJSON]
+  employmentHistory: [AWSJSON]
+  emergencyContact: [AWSJSON]
+}
+
 type ChassisLocation @model @auth(rules: [{allow: public}]) {
   id: ID!
   chassisNumber: String!
@@ -14,4 +42,5 @@ type TrailerRCJ @model @auth(rules: [{allow: public}]) {
   inspectionFile: String
   registrationExpiresAt: AWSDate
   registrationFile: String
-} 
+}
+ 
