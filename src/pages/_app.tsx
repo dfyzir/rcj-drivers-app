@@ -20,7 +20,7 @@ function App({ Component, pageProps }: AppProps) {
     },
   });
   return (
-    <ThemeProvider theme={theme} defaultMode="dark">
+    <ThemeProvider theme={theme} defaultMode="system">
       <Authenticator.Provider>
         <Head>
           <title>RCJ Driver</title>
