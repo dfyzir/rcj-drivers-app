@@ -412,7 +412,8 @@ const CreditApplicationForm: React.FC = () => {
     }
     try {
       const pdfBytes = await generatePDF({ formData, sigCanvas });
-      const fileName = `applications/drivers/${formData.firstName}_${formData.lastName}_RCJ_Driver_Application_${formData.firstName}_${formData.lastName}.pdf`;
+      const timestamp = new Date().getTime();
+      const fileName = `applications/drivers/${formData.firstName}_${formData.lastName}_RCJ_Driver_Application_${timestamp}.pdf`;
       await uploadData({
         path: fileName,
         data: pdfBytes,
