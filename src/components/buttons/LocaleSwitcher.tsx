@@ -1,14 +1,16 @@
-import { useTranslation } from "react-i18next";
-import { Button } from "@mui/material";
+import { useRouter } from "next/router";
+import Button from "@mui/material/Button";
 
 export default function LocaleSwitcher() {
-  const { i18n } = useTranslation();
-
+  const router = useRouter();
+  const { locale, pathname, asPath, query } = router;
+  const nextLocale = locale === "en" ? "es" : "en";
+  const handleClick = () => {
+    router.push({ pathname, query }, asPath, { locale: nextLocale });
+  };
   return (
-    <Button
-      onClick={() => i18n.changeLanguage(i18n.language === "en" ? "es" : "en")}
-      variant="outlined">
-      {i18n.language === "en" ? "Español" : "English"}
+    <Button onClick={handleClick} variant="outlined">
+      {locale === "en" ? "Español" : "English"}
     </Button>
   );
 }

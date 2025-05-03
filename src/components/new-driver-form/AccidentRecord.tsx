@@ -4,6 +4,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { ExpiredWarningIcon } from "../icons/ExpiredWarningIcon";
 import { useTranslation } from "react-i18next";
+import { PlusIcon } from "../icons/PlusIcon";
+import { DeleteIcon } from "../icons/DeleteIcon";
 
 interface AccidentRecordProps {
   formData: NewDriverForm;
@@ -138,25 +140,30 @@ const AccidentRecordForm = ({
                     helperText={errors[`accidentRecord.${index}.injuries`]}
                   />
                 </div>
-
                 <Button
-                  key={`accidentRecord.${index}`}
+                  className="w-fit self-end"
+                  title="Delete"
+                  key={`accidentRecord.${index}-delete-button`}
                   color="error"
                   variant="outlined"
                   onClick={() => removeAccidentRecord(index)}>
-                  {t("removeRecord")}
+                  <DeleteIcon />
                 </Button>
               </div>
             ))}
           </>
         )}
-
         <Button
-          color="success"
-          variant="contained"
-          onClick={addAccidentRecord}
-          className="mt-auto">
-          {t("addRecord")}
+          className={`max-w-44 ${
+            !formData.accidentRecord.length ? "self-center" : "self-end"
+          }`}
+          color="secondary"
+          variant="outlined"
+          onClick={addAccidentRecord}>
+          <PlusIcon />
+          <span>
+            {!formData.accidentRecord.length ? t("begin") : t("addMore")}
+          </span>
         </Button>
       </section>
     </>

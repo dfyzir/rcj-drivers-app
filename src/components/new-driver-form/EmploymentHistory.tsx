@@ -29,6 +29,8 @@ import { MuiTelInput } from "mui-tel-input";
 import { ExpiredWarningIcon } from "../icons/ExpiredWarningIcon";
 import { useTranslation } from "react-i18next";
 import { useEffect, useMemo } from "react";
+import { PlusIcon } from "../icons/PlusIcon";
+import { DeleteIcon } from "../icons/DeleteIcon";
 
 interface EmploymentHistoryProps {
   formData: NewDriverForm;
@@ -45,7 +47,6 @@ interface EmploymentHistoryProps {
   ) => void;
   addEmploymentHistory: () => void;
   removeEmploymentHistory: (index: number) => void;
-  validateField: (field: string, updatedData: NewDriverForm) => void;
 }
 const EmploymentHistoryForm = ({
   formData,
@@ -55,9 +56,35 @@ const EmploymentHistoryForm = ({
   handleEmploymentHistoryChange,
   addEmploymentHistory,
   removeEmploymentHistory,
-  validateField,
 }: EmploymentHistoryProps) => {
   const { t } = useTranslation("common");
+
+  const canAddHistory = useMemo(() => {
+    // if empty, we want the “Begin” button
+    if (formData.employmentHistory.length === 0) return false;
+
+    const last =
+      formData.employmentHistory[formData.employmentHistory.length - 1];
+    const requiredTextFields = [
+      last.companyName,
+      last.contactPerson,
+      last.phone,
+      last.street,
+      last.city,
+      last.state,
+      last.zip,
+      last.position,
+    ].every((v) => v && v.trim() !== "");
+
+    // date fields must parse and “from <= to”
+    const from = dayjs(last.from, "L");
+    const to = dayjs(last.to, "L");
+    const validDates = from.isValid() && to.isValid() && !to.isBefore(from);
+
+    // the two checkboxes are always boolean, so we don’t gate on them
+
+    return requiredTextFields && validDates;
+  }, [formData.employmentHistory]);
 
   const hasTenYears = useMemo(() => {
     const endDates = formData.employmentHistory
@@ -482,20 +509,34 @@ const EmploymentHistoryForm = ({
                 }
               />
             </div>
+
             <Button
+              className="w-fit self-end"
+              title="Delete"
+              key={`employmentHistory.${index}-delete-button`}
               color="error"
               variant="outlined"
               onClick={() => removeEmploymentHistory(index)}>
-              {t("removeHistory")}
+              <DeleteIcon />
             </Button>
           </div>
         ))}
 
-        {!hasTenYears && (
-          <Typography color="error" variant="body2">
-            You must cover at least 10 years of history (oldest “from” date on
-            or before {dayjs().subtract(10, "year").format("MM/DD/YYYY")})
-          </Typography>
+        {!hasTenYears && canAddHistory && (
+          <div className="flex flex-row gap-4 justify-between">
+            <Typography color="error" variant="body2">
+              You must cover at least 10 years of history (oldest “from” date on
+              or before {dayjs().subtract(10, "year").format("MM/DD/YYYY")})
+            </Typography>
+            <Button
+              className="max-w-44 self-end"
+              color="secondary"
+              variant="contained"
+              onClick={addEmploymentHistory}>
+              <PlusIcon />
+              <span>{t("addMore")}</span>
+            </Button>
+          </div>
         )}
 
         <>
@@ -547,12 +588,15 @@ const EmploymentHistoryForm = ({
             {errors.employmentHistory}
           </Typography>
         )}
-        <Button
-          color="success"
-          variant="contained"
-          onClick={addEmploymentHistory}>
-          {t("addHistory")}
-        </Button>
+        {!formData.employmentHistory.length && (
+          <Button
+            className="max-w-44 self-center"
+            color="secondary"
+            variant="contained"
+            onClick={addEmploymentHistory}>
+            <span>{t("begin")}</span>
+          </Button>
+        )}
       </section>
     </>
   );

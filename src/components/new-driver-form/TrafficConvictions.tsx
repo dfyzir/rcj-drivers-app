@@ -4,6 +4,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { ExpiredWarningIcon } from "../icons/ExpiredWarningIcon";
 import { useTranslation } from "react-i18next";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { PlusIcon } from "../icons/PlusIcon";
 
 interface TrafficConvictionProps {
   formData: NewDriverForm;
@@ -123,23 +125,30 @@ const TrafficConvictionsForm = ({
                     helperText={errors[`trafficConvictions.${index}.charge`]}
                   />
                 </div>
-
                 <Button
+                  className="w-fit self-end"
+                  title="Delete"
+                  key={`trafficConvictions.${index}-delete-button`}
                   color="error"
                   variant="outlined"
                   onClick={() => removeTrafficConviction(index)}>
-                  {t("removeConv")}
+                  <DeleteIcon />
                 </Button>
               </div>
             ))}
           </>
         )}
-
         <Button
-          color="success"
-          variant="contained"
+          className={`max-w-44 ${
+            !formData.trafficConvictions.length ? "self-center" : "self-end"
+          }`}
+          color="secondary"
+          variant="outlined"
           onClick={addTrafficConviction}>
-          {t("addConv")}
+          <PlusIcon />
+          <span>
+            {!formData.trafficConvictions.length ? t("begin") : t("addMore")}
+          </span>
         </Button>
       </section>
     </>

@@ -3,6 +3,8 @@ import { DrivingExperience, NewDriverForm } from "@/types/newDriverForm";
 import { Button, TextField } from "@mui/material";
 import { ExpiredWarningIcon } from "../icons/ExpiredWarningIcon";
 import { useTranslation } from "react-i18next";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { PlusIcon } from "../icons/PlusIcon";
 
 interface DrivingExperienceFormProps {
   formData: NewDriverForm;
@@ -120,11 +122,13 @@ const DrivingExpereinceForm = ({
                   />
                 </div>
                 <Button
-                  key={`drivingExperience.${index}`}
+                  className="w-fit self-end"
+                  title="Delete"
+                  key={`drivingExperience.${index}-delete-button`}
                   color="error"
                   variant="outlined"
                   onClick={() => removeDrivingExperience(index)}>
-                  {t("removeExp")}
+                  <DeleteIcon />
                 </Button>
               </div>
             ))}
@@ -132,10 +136,16 @@ const DrivingExpereinceForm = ({
         )}
 
         <Button
-          color="success"
-          variant="contained"
+          className={`max-w-44 ${
+            !formData.drivingExperience.length ? "self-center" : "self-end"
+          }`}
+          color="secondary"
+          variant="outlined"
           onClick={addDrivingExperience}>
-          {t("addDrivingExp")}
+          <PlusIcon />
+          <span>
+            {!formData.drivingExperience.length ? t("begin") : t("addMore")}
+          </span>
         </Button>
       </section>
     </>

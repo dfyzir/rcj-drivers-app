@@ -8,17 +8,21 @@ import {
   MenuItem,
   Select,
   TextField,
+  Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import { MuiTelInput } from "mui-tel-input";
 import { useTranslation } from "next-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { PlusIcon } from "../icons/PlusIcon";
 
 interface PersonalInformationProps {
   formData: NewDriverForm;
   setFormData: React.Dispatch<React.SetStateAction<NewDriverForm>>;
   errors: Record<string, string>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
@@ -36,19 +40,74 @@ interface PersonalInformationProps {
   ) => void;
   removeHomeAddress: (index: number) => void;
   addHomeAddress: () => void;
+  validateField: (field: string, updatedData: NewDriverForm) => void;
 }
 const PersonalInformation = ({
   formData,
   setFormData,
   errors,
+  setErrors,
   handleChange,
   handleDriversLicenseChange,
   handleBlur,
   handleHomeAddressChange,
   removeHomeAddress,
   addHomeAddress,
+  validateField,
 }: PersonalInformationProps) => {
   const { t } = useTranslation();
+
+  const coversThreeYears = useMemo(() => {
+    const cutoff = dayjs().subtract(3, "year");
+    const now = dayjs().endOf("day");
+    // Sum up only the months that lie within [cutoff … now]
+    const coveredMonths = formData.physicalAddress
+      .map(({ from, to }) => {
+        const fromDate = dayjs(from, "L").startOf("day");
+        const toDate = dayjs(to, "L").endOf("day");
+        // if invalid or entirely before cutoff, ignore it
+        if (
+          !fromDate.isValid() ||
+          !toDate.isValid() ||
+          toDate.isBefore(cutoff)
+        ) {
+          return 0;
+        }
+        // clamp the range into [cutoff, now]
+        const start = fromDate.isBefore(cutoff) ? cutoff : fromDate;
+        const end = toDate.isAfter(now) ? now : toDate;
+        return end.diff(start, "month", true);
+      })
+      .reduce((sum, m) => sum + m, 0);
+    return coveredMonths >= 36;
+  }, [formData.physicalAddress]);
+
+  const canAddAddress = useMemo(() => {
+    if (coversThreeYears) return false;
+
+    return formData.physicalAddress.every((addr) => {
+      // all required strings non-empty
+      const hasText =
+        addr.street.trim() !== "" &&
+        addr.city.trim() !== "" &&
+        addr.state.trim() !== "" &&
+        addr.zip.trim() !== "";
+      // valid dates and from ≤ to
+      const from = dayjs(addr.from, "L");
+      const to = dayjs(addr.to, "L");
+      const validDates = from.isValid() && to.isValid() && !to.isBefore(from);
+      return hasText && validDates;
+    });
+  }, [formData.physicalAddress, coversThreeYears]);
+
+  useEffect(() => {
+    if (!canAddAddress) {
+      setErrors((prev: Record<string, string>) => {
+        const { physicalAddress, ...rest } = prev;
+        return rest;
+      });
+    }
+  }, [canAddAddress]);
 
   return (
     <section className="mb-6">
@@ -108,10 +167,12 @@ const PersonalInformation = ({
               name="dateOfBirth"
               label={t("dateOfBirth")}
               onChange={(value) => {
-                setFormData({
+                const updatedForm = {
                   ...formData,
                   dateOfBirth: dayjs(value)?.format("L") ?? "",
-                });
+                };
+                setFormData(updatedForm);
+                validateField("dateOfBirth", updatedForm);
               }}
               className="w-full max-w-44 bg-transparent [&>div]:dark:bg-transparent [&>div]:dark:hover:bg-slate-900 [&>div]:dark:focus-within:hover:bg-transparent [&>div>div>div>div[role='spinbutton']]:dark:text-white [&>div>span]:dark:text-white"
               disableFuture
@@ -228,15 +289,17 @@ const PersonalInformation = ({
               value={dayjs(formData.driversLicense.expDate)}
               name="expDate"
               label={t("expDate")}
-              onChange={(value) =>
-                setFormData({
+              onChange={(value) => {
+                const updatedForm = {
                   ...formData,
                   driversLicense: {
                     ...formData.driversLicense,
                     expDate: dayjs(value)?.format("L") ?? "",
                   },
-                })
-              }
+                };
+                setFormData(updatedForm);
+                validateField("driversLicense.expDate", updatedForm);
+              }}
               className="w-full max-w-44 bg-transparent [&>div]:dark:bg-transparent [&>div]:dark:hover:bg-slate-900 [&>div]:dark:focus-within:hover:bg-transparent [&>div>div>div>div[role='spinbutton']]:dark:text-white [&>div>span]:dark:text-white"
               disablePast
               slotProps={{
@@ -335,25 +398,74 @@ const PersonalInformation = ({
                 }
                 helperText={errors[`physicalAddress.${idx}.zip`]}
               />
+              <FormControl className="w-full max-w-44">
+                <DatePicker
+                  label={t("from")}
+                  value={dayjs(addr.from)}
+                  maxDate={dayjs(formData.physicalAddress[idx].to)}
+                  onChange={(value) => {
+                    handleHomeAddressChange(
+                      idx,
+                      "from",
+                      dayjs(value).format("L")
+                    );
+                  }}
+                  slotProps={{
+                    textField: {
+                      helperText: errors[`physicalAddress.${idx}.from`],
+                    },
+                  }}
+                />
+              </FormControl>
+              <FormControl className="w-full max-w-44">
+                <DatePicker
+                  label={t("to")}
+                  minDate={dayjs(formData.physicalAddress[idx].from)}
+                  value={dayjs(addr.to)}
+                  onChange={(value) => {
+                    handleHomeAddressChange(
+                      idx,
+                      "to",
+                      dayjs(value).format("L")
+                    );
+                  }}
+                  slotProps={{
+                    textField: {
+                      helperText: errors[`physicalAddress.${idx}.to`],
+                    },
+                  }}
+                />
+              </FormControl>
             </div>
             {formData.physicalAddress.length > 1 && (
               <Button
-                className="m-2"
+                key={`physicalAddres.${idx}-delete-button`}
+                className="self-end w-fit "
+                title="Delete"
                 color="error"
                 variant="outlined"
                 onClick={() => removeHomeAddress(idx)}>
-                {t("removeAddress")}
+                <DeleteIcon />
               </Button>
             )}
           </div>
         ))}
-        <Button
-          className="p-2"
-          color="success"
-          variant="contained"
-          onClick={addHomeAddress}>
-          {t("addAddress")}
-        </Button>
+        {canAddAddress && (
+          <div className="flex flex-row justify-between">
+            {!coversThreeYears && (
+              <Typography color="error" variant="body2">
+                {errors.physicalAddress}
+              </Typography>
+            )}
+            <Button
+              className="p-2"
+              color="secondary"
+              variant="contained"
+              onClick={addHomeAddress}>
+              <PlusIcon /> <span>{t("addMore")}</span>
+            </Button>
+          </div>
+        )}
       </div>
       {/* Emergency Contact */}
       <div className="mt-4">

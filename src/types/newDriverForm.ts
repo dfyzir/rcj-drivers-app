@@ -3,6 +3,8 @@ export type Address = {
   city: string;
   state: string;
   zip: string;
+  from: string;
+  to: string;
 };
 
 export type TradeReference = {

@@ -53,7 +53,9 @@ const CreditApplicationForm: React.FC = () => {
       class: "",
       expDate: "",
     },
-    physicalAddress: [{ street: "", city: "", state: "", zip: "" }],
+    physicalAddress: [
+      { street: "", city: "", state: "", zip: "", from: "", to: "" },
+    ],
     phone: "",
     altPhone: "",
     drivingExperience: [],
@@ -255,6 +257,8 @@ const CreditApplicationForm: React.FC = () => {
           city: "",
           state: "",
           zip: "",
+          from: "",
+          to: "",
         },
       ],
     });
@@ -307,7 +311,7 @@ const CreditApplicationForm: React.FC = () => {
     setErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`employmentHistory.${index}`)) {
+        if (key.startsWith(`employmentHistory.`)) {
           delete newErrors[key];
         }
       });
@@ -323,7 +327,7 @@ const CreditApplicationForm: React.FC = () => {
     setErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`physicalAddress.${index}`)) {
+        if (key.startsWith(`physicalAddress`)) {
           delete newErrors[key];
         }
       });
@@ -336,7 +340,7 @@ const CreditApplicationForm: React.FC = () => {
     setErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`drivingExperience.${index}`)) {
+        if (key.startsWith(`drivingExperience.`)) {
           delete newErrors[key];
         }
       });
@@ -351,7 +355,7 @@ const CreditApplicationForm: React.FC = () => {
     setErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`accidentRecord.${index}`)) {
+        if (key.startsWith(`accidentRecord.`)) {
           delete newErrors[key];
         }
       });
@@ -366,7 +370,7 @@ const CreditApplicationForm: React.FC = () => {
     setErrors((prev) => {
       const newErrors = { ...prev };
       Object.keys(newErrors).forEach((key) => {
-        if (key.startsWith(`trafficConvictions.${index}`)) {
+        if (key.startsWith(`trafficConvictions.`)) {
           delete newErrors[key];
         }
       });
@@ -431,7 +435,9 @@ const CreditApplicationForm: React.FC = () => {
         authorized: false,
         firstName: "",
         lastName: "",
-        physicalAddress: [{ street: "", city: "", state: "", zip: "" }],
+        physicalAddress: [
+          { street: "", city: "", state: "", zip: "", from: "", to: "" },
+        ],
         socialSecurity: "",
         dateOfBirth: "",
         driversLicense: {
@@ -670,12 +676,14 @@ const CreditApplicationForm: React.FC = () => {
             formData={formData}
             setFormData={setFormData}
             errors={errors}
+            setErrors={setErrors}
             handleChange={handleChange}
             handleDriversLicenseChange={handleDriversLicenseChange}
             handleBlur={handleBlur}
             handleHomeAddressChange={handleHomeAddressChange}
             removeHomeAddress={removeHomeAddress}
             addHomeAddress={addHomeAddress}
+            validateField={validateField}
           />
         )}
 
@@ -721,7 +729,6 @@ const CreditApplicationForm: React.FC = () => {
             handleEmploymentHistoryChange={handleEmploymentHistoryChange}
             addEmploymentHistory={addEmploymentHistory}
             removeEmploymentHistory={removeEmploymentHistory}
-            validateField={validateField}
           />
         )}
         {activeStep === 5 && (

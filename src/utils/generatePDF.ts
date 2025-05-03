@@ -2,8 +2,8 @@ import { NewDriverForm } from "@/types/newDriverForm";
 import rcj_transport from "../../public/rcj_transport.png";
 import jsPDF from "jspdf";
 import SignatureCanvas from "react-signature-canvas";
-import autoTable, { applyPlugin } from "jspdf-autotable";
-import { format } from "path";
+import { applyPlugin } from "jspdf-autotable";
+
 applyPlugin(jsPDF);
 interface generatePDFProps {
   formData: NewDriverForm;
@@ -318,6 +318,10 @@ export const generatePDF = async ({
 
     // draw that mini-table and bump y
     y = drawKeyValueTable(doc, map, y);
+  }
+  if (y > 265) {
+    doc.addPage();
+    y = 20;
   }
 
   // 8) Employment History
