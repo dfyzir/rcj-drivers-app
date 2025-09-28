@@ -1,4 +1,22 @@
-type NewDriverPersonalInfo @model @auth(rules: [{allow: public, operations: [create]}]) {
+type DriverApplicationsComments @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  text: String
+  createdAt: AWSDateTime
+  author: String
+  fileId: String
+}
+
+type CreditApplicationsComments @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  text: String
+  createdAt: AWSDateTime
+  author: String
+  fileId: String
+}
+
+type NewDriverPersonalInfo
+  @model
+  @auth(rules: [{ allow: public, operations: [create] }]) {
   id: ID!
   firstName: String!
   lastName: String!
@@ -26,14 +44,14 @@ type NewDriverPersonalInfo @model @auth(rules: [{allow: public, operations: [cre
   emergencyContact: [AWSJSON]
 }
 
-type ChassisLocation @model @auth(rules: [{allow: public}]) {
+type ChassisLocation @model @auth(rules: [{ allow: public }]) {
   id: ID!
   chassisNumber: String!
   location: String
   container: String
 }
 
-type TrailerRCJ @model @auth(rules: [{allow: public}]) {
+type TrailerRCJ @model @auth(rules: [{ allow: public }]) {
   id: ID!
   chassisNumber: String
   vinNumber: String
@@ -43,4 +61,3 @@ type TrailerRCJ @model @auth(rules: [{allow: public}]) {
   registrationExpiresAt: AWSDate
   registrationFile: String
 }
- 

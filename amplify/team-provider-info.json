@@ -18,7 +18,7 @@
       "function": {
         "awsrcjlayer50525934": {
           "deploymentBucketName": "amplify-awsrcj-dev-142116-deployment",
-          "s3Key": "amplify-builds/awsrcjlayer50525934-LambdaLayerVersion1a17f1ad-build.zip"
+          "s3Key": "amplify-builds/awsrcjlayer50525934-LambdaLayerVersionb389d0e7-build.zip"
         }
       },
       "storage": {
