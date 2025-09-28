@@ -1,4 +1,5 @@
 import { EmploymentHistory } from "@/types/newDriverForm";
+import { DATE_FMT, monthsCoveredLast3Years } from "@/utils/countTimePassed";
 import dayjs, { Dayjs } from "dayjs";
 import Joi from "joi";
 // Regex pattern to validate US phone numbers with optional country code, parentheses, dashes, spaces, etc.
@@ -26,6 +27,14 @@ export const dateValueSchema = Joi.string()
   });
 
 export const driverFormSchema = Joi.object({
+  applicationType: Joi.string()
+    .valid("ownerOperator", "companyDriver")
+    .required()
+    .label("Application Type")
+    .messages({
+      "any.only": "Please select Owner Operator or Company Driver",
+      "string.empty": "Application Type is required",
+    }),
   firstName: Joi.string().required().label("First Name").messages({
     "string.empty": "This field is required",
   }),
@@ -77,49 +86,36 @@ export const driverFormSchema = Joi.object({
             "string.empty": "This field is required",
             "string.pattern.base": "Must be 5 digit or 9 digit XXXXX-XXXX",
           }),
-        from: dateValueSchema.required().label("From Date").messages({
-          "string.empty": "This field is required",
-          "string.pattern.base": "Date must be in MM/DD/YYYY format",
-        }),
-        to: dateValueSchema.required().label("To Date").messages({
-          "string.empty": "This field is required",
-          "string.pattern.base": "Date must be in MM/DD/YYYY format",
-        }),
+        from: dateValueSchema.required().label("From Date"),
+        to: dateValueSchema.required().label("To Date"),
       })
         .required()
         .label("Physical Address")
     )
     .min(1)
     .required()
-    .messages({ "array.min": "At least one address is required" })
-
     .custom((arr: any[], helpers) => {
-      const cutoff = dayjs().subtract(3, "year").startOf("day");
-      const now = dayjs().endOf("day");
-      const coveredMonths = arr
-        .map(({ from, to }) => {
-          const f = dayjs(from, "L").startOf("day");
-          const t = dayjs(to, "L").endOf("day");
-          // ignore ranges that end entirely before cutoff
-          if (!f.isValid() || !t.isValid() || t.isBefore(cutoff)) {
-            return 0;
-          }
-          // clamp into [cutoff … now]
-          const start = f.isBefore(cutoff) ? cutoff : f;
-          const end = t.isAfter(now) ? now : t;
-          return end.diff(start, "month", true);
-        })
-        .reduce((sum, m) => sum + m, 0);
+      // also enforce from <= to per item (defensive)
+      for (const { from, to } of arr) {
+        const f = dayjs(from, DATE_FMT, true);
+        const t = dayjs(to, DATE_FMT, true);
+        if (!f.isValid() || !t.isValid() || t.isBefore(f)) {
+          return helpers.error("array.base"); // per-item field errors will surface too
+        }
+      }
 
-      if (coveredMonths < 36) {
+      const months = monthsCoveredLast3Years(arr);
+      if (months < 36) {
         return helpers.error("array.addressThreeYears");
       }
       return arr;
     })
     .messages({
+      "array.min": "At least one address is required",
       "array.addressThreeYears":
         "Address history must cover at least the last 3 years",
     }),
+
   phone: Joi.string().pattern(phonePattern).required().label("Phone").messages({
     "string.empty": "This field is required",
     "string.pattern.base": "Must be valid phone number",
@@ -336,12 +332,6 @@ export const driverFormSchema = Joi.object({
     .label("Terms Agreement")
     .messages({ "any.only": "You must agree to the terms" }),
 
-  creditDisclosure: Joi.boolean()
-    .valid(true)
-    .required()
-    .label("Credit Disclosure")
-    .messages({ "any.only": "You must agree to credit disclosure" }),
-
   deniedLicense: Joi.boolean().required().label("Denied License"),
 
   suspendedOrRevoked: Joi.boolean()
@@ -398,11 +388,7 @@ export const driverFormSchema = Joi.object({
     "string.empty": "Please explain your conviction",
     "any.required": "Please explain your conviction",
   }),
-  authorized: Joi.boolean()
-    .valid(true)
-    .required()
-    .label("Authorized")
-    .messages({ "any.only": "You must authorize" }),
+
   employmentGapExplanations: Joi.object().optional(),
 })
   .required()

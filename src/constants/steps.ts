@@ -1,5 +1,6 @@
 import { useTranslation, UseTranslation } from "next-i18next";
 export const step0Keys = [
+  "applicationType",
   "firstName",
   "lastName",
   "socialSecurity",
@@ -27,7 +28,6 @@ export const step6Keys = [
   "date",
   "signature",
   "termsAgreed",
-  "creditDisclosure",
 ];
 
 export const keysByStep = [

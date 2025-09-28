@@ -111,7 +111,7 @@ const CriminalBackground = ({
                   value={formData.deniedOrRevokedExplanation}
                   onChange={handleChange}
                   onBlur={() => handleBlur("deniedOrRevokedExplanation")}
-                  className="w-full p-1  text-black dark:bg-gray-400"
+                  className="w-full p-1  text-black bg-gray-100 dark:bg-gray-800 dark:text-slate-300"
                 />
               }
             />
@@ -169,7 +169,7 @@ const CriminalBackground = ({
                   value={formData.convictedExplanation}
                   onChange={handleChange}
                   onBlur={() => handleBlur("convictedExplanation")}
-                  className="w-full text-black dark:bg-gray-400"
+                  className="w-full text-black bg-gray-100 dark:bg-gray-800 dark:text-slate-300"
                 />
               }
             />

@@ -1,3 +1,4 @@
+export type ApplicationType = "ownerOperator" | "companyDriver";
 export type Address = {
   street: string;
   city: string;
@@ -68,7 +69,7 @@ export type DriversLicense = {
   expDate: string;
 };
 export type NewDriverForm = {
-  authorized: boolean;
+  applicationType: ApplicationType;
   firstName: string;
   lastName: string;
   socialSecurity: string;
@@ -87,7 +88,6 @@ export type NewDriverForm = {
   date: string;
   signature: string;
   termsAgreed: boolean;
-  creditDisclosure: boolean;
   deniedLicense: boolean;
   suspendedOrRevoked: boolean;
   deniedOrRevokedExplanation: string;

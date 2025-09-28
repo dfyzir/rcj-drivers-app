@@ -18,8 +18,7 @@
   "emergencyContact": "Contacto de Emergencia",
   "name": "Nombre",
   "relationship": "Relación",
-  "appTitle": "Formulario de Solicitud de Conductor RCJ",
-  "back": "Atras",
+  "appTitle": "Solicitud de Conductor de RCJ",
   "next": "Siguiente",
   "missingInformation": "Información faltante",
   "drivingExp": "Experiencia de Conducción",
@@ -67,7 +66,6 @@
   "deniedOrSuspendedExplanationLabel": "Si respondió afirmativamente a cualquiera de las preguntas anteriores, proporcione detalles:",
   "felonyLabel": "¿Alguna vez ha sido arrestado y/o condenado por un delito leve o grave?",
   "felonyExplanationLabel": "Si respondió que sí, por favor explique completamente. La condena por un delito no es un impedimento automático para el empleo; se considerarán todas las circunstancias.",
-  "printName": "Nombre impreso",
   "applicationCertify": "Esto certifica que esta solicitud fue completada por mí y que todas las entradas e información en ella son verdaderas y completas según mi leal saber y entender.",
   "bgCheckAgreement": "De conformidad con las disposiciones de la Sección 604 (b)(2)(A) de la Ley de Informe Justo de Crédito, Ley Pública 91-508, enmendada por la Ley de Informe de Crédito al Consumidor de 1996 (Título II, Subsección D, Capítulo I de la Ley Pública 104-208), se le informa que se podrán obtener informes que verifiquen su empleo anterior, resultados previos de pruebas de drogas y alcohol, y su historial de conducción con fines de empleo o contratación. Estos informes son requeridos por las Secciones 382.413, 391.23 y 391.25 del Reglamento Federal de Seguridad de Transportistas por Carretera.",
   "signature": "Firma",
@@ -78,5 +76,40 @@
   "removeAddress": "Eliminar dirección",
   "delete": "Borrar",
   "begin": "Comenzar",
-  "addMore": "Agregar más"
+  "addMore": "Agregar más",
+  "applicationType": "Tipo de solicitud",
+  "ownerOperator": "Propietario-Operador",
+  "companyDriver": "Conductor de la empresa",
+  "back": "Atrás",
+  "printName": "Nombre completo",
+  "acceptAllTermsShort": "Acepto los Términos y Condiciones",
+  "viewTerms": "Ver Términos y Condiciones completos",
+  "hideTerms": "Ocultar Términos",
+  "accepted": "(aceptado)",
+  "viewFullText": "Ver texto completo",
+
+  "applicationCertify.short": "Confirmación de la solicitud",
+  "applicationCertify.plain": "Usted confirma que completó esta solicitud y que la información es veraz y completa según su leal saber y entender.",
+
+  "bgCheckAgreement.short": "Verificación de antecedentes y registro de conducción",
+  "bgCheckAgreement.plain": "Autoriza que solicitemos su empleo previo, resultados de pruebas de drogas/alcohol y su historial de conducción para fines de empleo.",
+
+  "authorize.short": "Autorización para verificar historial",
+  "authorize.plain": "Autoriza que verifiquemos su información personal, laboral y relacionada según sea necesario para evaluar su solicitud.",
+
+  "pspAgreement.short": "Consentimiento PSP de la FMCSA",
+  "pspAgreement.plain": "Autoriza a RCJ Transport a solicitar su informe PSP de la FMCSA (historial de choques e inspecciones) para evaluar su idoneidad.",
+
+  "pspAgreement.body": "En relación con su solicitud de empleo con RCJ Transport (\"Empleador Potencial\"), el Empleador Potencial, sus empleados, agentes o contratistas pueden obtener uno o más informes sobre su historial de conducción y de inspecciones de seguridad de la Administración Federal de Seguridad de Autotransportes (FMCSA).\n\nCuando la solicitud de empleo se presenta en persona, si el Empleador Potencial utiliza información obtenida de la FMCSA para decidir no contratarle u otra decisión laboral adversa, el Empleador Potencial le proporcionará una copia del informe en el que se basó su decisión y un resumen escrito de sus derechos bajo la Ley de Informe Justo de Crédito (FCRA) antes de tomar cualquier acción adversa final. Si se toma una acción adversa final basada en su historial de conducción o informe de seguridad, el Empleador Potencial le notificará que la acción se ha tomado y que se basó en parte o en su totalidad en dicho informe.\n\nCuando la solicitud de empleo se presenta por correo, teléfono, computadora u otros medios similares, si el Empleador Potencial usa información obtenida de la FMCSA para decidir no contratarle u otra decisión laboral adversa, dentro de los tres días hábiles siguientes a la acción adversa deberá notificarle verbalmente, por escrito o electrónicamente: que se ha tomado una acción adversa basada total o parcialmente en información de la FMCSA; el nombre, dirección y número de teléfono gratuito de la FMCSA; que la FMCSA no tomó la decisión y no puede proporcionar las razones específicas; y que usted puede, con la identificación adecuada, solicitar una copia gratuita del informe y disputar ante la FMCSA la exactitud o integridad de cualquier información o informe. Si solicita al Empleador Potencial una copia del informe, entonces, dentro de los 3 días hábiles de recibir su solicitud (junto con su identificación), el Empleador Potencial deberá enviarle o proporcionarle una copia del informe y un resumen de sus derechos bajo la FCRA.\n\nNi el Empleador Potencial ni el proveedor contratado por la FMCSA que suministra la información de choques y seguridad pueden corregir datos de seguridad que parezcan incorrectos. Usted puede impugnar la exactitud de los datos enviando una solicitud en https://dataqs.fmcsa.dot.gov. Si impugna información de choques o inspecciones reportada por un Estado, la FMCSA no puede cambiar ni corregir esos datos. Su solicitud será remitida mediante DataQs al Estado correspondiente para su resolución.\n\nCualquier choque o inspección en el que usted haya estado involucrado aparecerá en su informe PSP. Dado que el informe PSP no indica ni asigna culpa, incluirá todos los choques de Vehículos Comerciales (CMV) en los que usted fue conductor o co-conductor y que se reportaron a la FMCSA, independientemente de la culpa. Del mismo modo, todas las inspecciones, con o sin infracciones, aparecen en el informe PSP. Las citaciones estatales asociadas a infracciones de las FMCSR que hayan sido resueltas por un tribunal también aparecerán y permanecerán en el informe PSP.\n\nEl Empleador Potencial no puede obtener informes de la FMCSA sin su autorización.\n\nAUTORIZACIÓN\n\nSi acepta que el Empleador Potencial obtenga dichos informes, lea lo siguiente y firme a continuación: Autorizo a RCJ Transport (\"Empleador Potencial\") a acceder al sistema del Programa de Evaluación Previa al Empleo (PSP) de la FMCSA para solicitar información sobre mi historial de seguridad como conductor comercial y mi historial de inspecciones de seguridad. Entiendo que autorizo la divulgación de información de desempeño de seguridad que incluye datos de choques de los últimos cinco (5) años e historial de inspecciones de los últimos tres (3) años. Reconozco que esta divulgación puede ayudar al Empleador Potencial a determinar mi idoneidad como empleado.\n\nAsimismo, entiendo que ni el Empleador Potencial ni el proveedor contratado por la FMCSA que suministra la información de choques y seguridad puede corregir datos de seguridad que parezcan incorrectos. Entiendo que puedo impugnar la exactitud de los datos enviando una solicitud a https://dataqs.fmcsa.dot.gov. Si impugno información de choques o inspecciones reportada por un Estado, la FMCSA no puede cambiar ni corregir esos datos. Entiendo que mi solicitud será remitida por DataQs al Estado correspondiente para su resolución.\n\nEntiendo que cualquier choque o inspección en la que estuve involucrado aparecerá en mi informe PSP. Dado que el informe PSP no indica ni asigna culpa, reconozco que incluirá todos los choques de CMV en los que fui conductor o co-conductor y que fueron reportados a la FMCSA, independientemente de la culpa. Del mismo modo, entiendo que todas las inspecciones, con o sin infracciones, aparecerán en mi informe PSP, y que las citaciones estatales asociadas a infracciones de las FMCSR que hayan sido resueltas por un tribunal también aparecerán y permanecerán en mi informe PSP.\n\nHe leído el Aviso anterior respecto a informes de antecedentes proporcionado por el Empleador Potencial y entiendo que, si firmo este Aviso y Autorización, el Empleador Potencial puede obtener un informe de mi historial de choques e inspecciones. Por la presente autorizo al Empleador Potencial y a sus empleados, agentes autorizados y/o afiliadas a obtener la información aquí autorizada.\n\nAVISO: Este formulario se pone a disposición de los titulares de cuentas mensuales por NIC en nombre del Departamento de Transporte de los EE. UU., FMCSA. La ley federal exige que los titulares de cuenta obtengan el consentimiento escrito o electrónico del solicitante antes de acceder al informe PSP del solicitante. Además, la FMCSA exige usar el texto de este Aviso y Autorización exactamente como se proporciona. Debe existir como documento independiente, no puede combinarse con otros consentimientos ni con ningún otro texto.\n\nAVISO: El concepto de empleo prospectivo mencionado en este formulario contempla la definición de \"empleado\" contenida en 49 C.F.R. 383.5. ÚLTIMA ACTUALIZACIÓN 02/11/2016",
+  "pleaseReviewTopNav": "Por favor complete las secciones siguientes. Use la navegación superior o haga clic en un elemento de la lista para ir a esa sección.",
+  "issuesCount_one": "1 elemento por completar",
+  "issuesCount_other": "{{count}} elementos por completar",
+
+  "submissionSuccessTitle": "¡Su solicitud se envió correctamente!",
+  "startOver": "Empezar de nuevo",
+  "nonOfficialTranslationNotice": "Esta traducción no es oficial y se ofrece solo para su conveniencia. La versión en inglés prevalece.",
+  "pleaseAcceptAll": "Debe aceptar los Términos y Condiciones para continuar.",
+  "mustCover10Years": "Debe cubrir al menos 10 años de historial (la fecha más antigua de «desde» el {{date}} o anterior).",
+  "gap": "Periodo sin empleo",
+  "explanationOptional": "Explicación (opcional)"
 }

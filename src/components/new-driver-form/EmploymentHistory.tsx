@@ -1,17 +1,14 @@
 import { US_STATES } from "@/constants/usStates";
 import { EmploymentHistory, NewDriverForm } from "@/types/newDriverForm";
-
 import {
   Button,
   Checkbox,
   FormControl,
   FormControlLabel,
   FormHelperText,
-  FormLabel,
   InputLabel,
   MenuItem,
   Paper,
-  RadioGroup,
   Select,
   Table,
   TableBody,
@@ -31,6 +28,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useMemo } from "react";
 import { PlusIcon } from "../icons/PlusIcon";
 import { DeleteIcon } from "../icons/DeleteIcon";
+import { DATE_FMT } from "@/utils/countTimePassed";
 
 interface EmploymentHistoryProps {
   formData: NewDriverForm;
@@ -58,13 +56,15 @@ const EmploymentHistoryForm = ({
   removeEmploymentHistory,
 }: EmploymentHistoryProps) => {
   const { t } = useTranslation("common");
+  const parse = (s?: string | null) => (s ? dayjs(s, DATE_FMT, true) : null);
+  const fmt = (d: dayjs.Dayjs | null) =>
+    d && d.isValid() ? d.format(DATE_FMT) : "";
 
   const canAddHistory = useMemo(() => {
-    // if empty, we want the “Begin” button
     if (formData.employmentHistory.length === 0) return false;
-
     const last =
       formData.employmentHistory[formData.employmentHistory.length - 1];
+
     const requiredTextFields = [
       last.companyName,
       last.contactPerson,
@@ -76,47 +76,47 @@ const EmploymentHistoryForm = ({
       last.position,
     ].every((v) => v && v.trim() !== "");
 
-    // date fields must parse and “from <= to”
-    const from = dayjs(last.from, "L");
-    const to = dayjs(last.to, "L");
-    const validDates = from.isValid() && to.isValid() && !to.isBefore(from);
-
-    // the two checkboxes are always boolean, so we don’t gate on them
+    const from = parse(last.from);
+    const to = parse(last.to);
+    const validDates = !!from && !!to && !to.isBefore(from);
 
     return requiredTextFields && validDates;
   }, [formData.employmentHistory]);
 
   const hasTenYears = useMemo(() => {
-    const endDates = formData.employmentHistory
-      .map((eh) => dayjs(eh.from, "L"))
-      .filter((d) => d.isValid());
-    if (endDates.length === 0) return false;
-    // find the oldest (earliest) end date
-    const oldestEnd = endDates.reduce(
+    const fromDates = formData.employmentHistory
+      .map((eh) => parse(eh.from))
+      .filter((d): d is dayjs.Dayjs => !!d && d.isValid());
+
+    if (fromDates.length === 0) return false;
+    const oldest = fromDates.reduce(
       (min, d) => (d.isBefore(min) ? d : min),
-      endDates[0]
+      fromDates[0]
     );
-    // compare against today minus 10 years
-    return oldestEnd.isBefore(dayjs().subtract(10, "year"));
+    const cutoff = dayjs().subtract(10, "year").startOf("day");
+    return !oldest.isAfter(cutoff); // on or before cutoff
   }, [formData.employmentHistory]);
 
   // 2) detect any gaps ≥ 3 months between sorted employments
-  const gaps: Record<string, string> = {};
-  if (formData.employmentHistory.length >= 2) {
-    for (let i = 0; i < formData.employmentHistory.length - 1; i++) {
-      const current = formData.employmentHistory[i];
-      const prev = formData.employmentHistory[i + 1];
-      const to = dayjs(prev.to, "L");
-      const from = dayjs(current.from, "L");
-      if (to.isValid() && from.isValid()) {
-        const monthsGap = from.diff(to, "month");
-        if (monthsGap >= 3) {
-          const key = `${dayjs(to)?.format("L")} - ${dayjs(from)?.format("L")}`;
-          gaps[key] = formData.employmentGapExplanations?.[key] || "";
-        }
+
+  const gaps: Record<string, string> = (() => {
+    const jobs = [...formData.employmentHistory]
+      .map((j) => ({ ...j, fromD: parse(j.from), toD: parse(j.to) }))
+      .filter((j) => j.fromD && j.toD && j.fromD.isValid() && j.toD.isValid())
+      .sort((a, b) => a.fromD!.valueOf() - b.fromD!.valueOf()); // oldest -> newest
+
+    const out: Record<string, string> = {};
+    for (let i = 0; i < jobs.length - 1; i++) {
+      const a = jobs[i]; // earlier job
+      const b = jobs[i + 1]; // later job
+      const months = b.fromD!.diff(a.toD!, "month", true);
+      if (months >= 3) {
+        const key = `${a.toD!.format(DATE_FMT)} - ${b.fromD!.format(DATE_FMT)}`;
+        out[key] = formData.employmentGapExplanations?.[key] || "";
       }
     }
-  }
+    return out;
+  })();
 
   const gapKeys = Object.keys(gaps);
 
@@ -134,7 +134,7 @@ const EmploymentHistoryForm = ({
       }
       return fd;
     });
-  }, [gapKeys.join("|") /* or gapKeys.length + gapKeys.join() */]);
+  }, [gapKeys.join("|")]);
 
   return (
     <>
@@ -145,7 +145,7 @@ const EmploymentHistoryForm = ({
           <ExpiredWarningIcon stroke="#6366f1" className=" shrink-0" />
           <p className="text-sm">
             {t("emplInfo1")}{" "}
-            <Tooltip title={<span className="s">{t("emplInfoHint")}</span>}>
+            <Tooltip title={<span>{t("emplInfoHint")}</span>}>
               <span className="underline cursor-help inline-block">
                 {t("emplInfo2")}
               </span>
@@ -207,8 +207,8 @@ const EmploymentHistoryForm = ({
                   }
                 />
                 <MuiTelInput
-                  label="Phone"
-                  name={t("phone")}
+                  name={`employmentHistory.${index}.phone`}
+                  label={t("phone")}
                   value={ref.phone}
                   onChange={(e) =>
                     handleEmploymentHistoryChange(index, "phone", e)
@@ -275,7 +275,7 @@ const EmploymentHistoryForm = ({
                       errors[`employmentHistory.${index}.state`].length > 0
                     }>
                     <InputLabel id={`employmentHistory.${index}-state-label`}>
-                      State
+                      {t("state")}
                     </InputLabel>
                     <Select
                       labelId={`employmentHistory.${index}-state-label`}
@@ -361,14 +361,12 @@ const EmploymentHistoryForm = ({
                     errors[`employmentHistory.${index}.from`].length > 0
                   }>
                   <DatePicker
-                    value={dayjs(formData.employmentHistory[index].from)}
+                    format={DATE_FMT}
                     label={t("from")}
+                    value={parse(ref.from)}
+                    maxDate={parse(ref.to) ?? undefined}
                     onChange={(value) =>
-                      handleEmploymentHistoryChange(
-                        index,
-                        "from",
-                        dayjs(value)?.format("L") ?? ""
-                      )
+                      handleEmploymentHistoryChange(index, "from", fmt(value))
                     }
                     className="w-full sm:max-w-44 bg-transparent [&>div]:dark:bg-transparent [&>div]:dark:hover:bg-slate-900 [&>div]:dark:focus-within:hover:bg-transparent [&>div>div>div>div[role='spinbutton']]:dark:text-white [&>div>span]:dark:text-white"
                     slotProps={{
@@ -385,14 +383,12 @@ const EmploymentHistoryForm = ({
                     errors[`employmentHistory.${index}.to`].length > 0
                   }>
                   <DatePicker
-                    value={dayjs(formData.employmentHistory[index].to)}
+                    format={DATE_FMT}
                     label={t("to")}
+                    value={parse(ref.to)}
+                    minDate={parse(ref.from) ?? undefined}
                     onChange={(value) =>
-                      handleEmploymentHistoryChange(
-                        index,
-                        "to",
-                        dayjs(value)?.format("L") ?? ""
-                      )
+                      handleEmploymentHistoryChange(index, "to", fmt(value))
                     }
                     className="w-full sm:max-w-44 bg-transparent [&>div]:dark:bg-transparent [&>div]:dark:hover:bg-slate-900 [&>div]:dark:focus-within:hover:bg-transparent [&>div>div>div>div[role='spinbutton']]:dark:text-white [&>div>span]:dark:text-white"
                     slotProps={{
@@ -525,8 +521,9 @@ const EmploymentHistoryForm = ({
         {!hasTenYears && canAddHistory && (
           <div className="flex flex-row gap-4 justify-between">
             <Typography color="error" variant="body2">
-              You must cover at least 10 years of history (oldest “from” date on
-              or before {dayjs().subtract(10, "year").format("MM/DD/YYYY")})
+              {t("mustCover10Years", {
+                date: dayjs().subtract(10, "year").format(DATE_FMT),
+              })}
             </Typography>
             <Button
               className="max-w-44 self-end"
@@ -549,8 +546,8 @@ const EmploymentHistoryForm = ({
                 <Table size="small">
                   <TableHead>
                     <TableRow className="dark:text-white">
-                      <TableCell>Gap</TableCell>
-                      <TableCell>Explanation (optional)</TableCell>
+                      <TableCell>{t("gap")}</TableCell>
+                      <TableCell>{t("explanationOptional")}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

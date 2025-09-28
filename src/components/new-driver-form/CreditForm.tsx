@@ -19,7 +19,21 @@ import {
   EmploymentHistory,
 } from "@/types/newDriverForm";
 
-import { Button, Step, StepLabel, Stepper, Typography } from "@mui/material";
+import {
+  Button,
+  Step,
+  StepLabel,
+  Stepper,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItemButton,
+  ListItemText,
+} from "@mui/material";
+
 import { keysByStep, steps } from "@/constants/steps";
 import Image from "next/image";
 import rcj_transport from "../../../public/rcj_transport.png";
@@ -33,74 +47,127 @@ import PersonalInformation from "./PersonalInformation";
 import EmploymentHistoryForm from "./EmploymentHistory";
 import CriminalBackground from "./CriminalBackground";
 import { useTranslation } from "react-i18next";
-import { Router } from "next/router";
 import LocaleSwitcher from "../buttons/LocaleSwitcher";
-
+import merge from "lodash.merge";
 const LOCAL_STORAGE_KEY = "NewDriverFormData";
+
+const STORAGE_KEY = "NewDriverFormData";
+const STORAGE_VERSION = 1;
+
+const todayISO = format(new Date(), "yyyy-MM-dd");
+
+const DEFAULT_FORM: NewDriverForm = {
+  applicationType: "" as NewDriverForm["applicationType"],
+  firstName: "",
+  lastName: "",
+  socialSecurity: "",
+  dateOfBirth: "",
+  driversLicense: { number: "", state: "", class: "", expDate: "" },
+  physicalAddress: [
+    { street: "", city: "", state: "", zip: "", from: "", to: "" },
+  ],
+  phone: "",
+  altPhone: "",
+  drivingExperience: [],
+  accidentRecord: [],
+  trafficConvictions: [],
+  licenseAndCriminalBackground: {
+    deniedLicense: false,
+    suspendedRevokedLicense: false,
+    descriptionForDeniedOrRevokedLicense: "",
+    arrested: false,
+    descriptionForArrested: "",
+  },
+  emergencyContact: { name: "", phone: "", relationship: "" },
+  employmentHistory: [],
+  printedName: "",
+  date: todayISO,
+  signature: "",
+  termsAgreed: false,
+  deniedLicense: false,
+  suspendedOrRevoked: false,
+  deniedOrRevokedExplanation: "",
+  isConvicted: false,
+  convictedExplanation: "",
+  employmentGapExplanations: {},
+};
+
+const STEP_KEY = "NewDriverFormActiveStep";
 
 const CreditApplicationForm: React.FC = () => {
   const { t } = useTranslation("common");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [formData, setFormData] = useState<NewDriverForm>({
-    authorized: false,
-    firstName: "",
-    lastName: "",
-    socialSecurity: "",
-    dateOfBirth: "",
-    driversLicense: {
-      number: "",
-      state: "",
-      class: "",
-      expDate: "",
-    },
-    physicalAddress: [
-      { street: "", city: "", state: "", zip: "", from: "", to: "" },
-    ],
-    phone: "",
-    altPhone: "",
-    drivingExperience: [],
-    accidentRecord: [],
-    trafficConvictions: [],
-    licenseAndCriminalBackground: {
-      deniedLicense: false,
-      suspendedRevokedLicense: false,
-      descriptionForDeniedOrRevokedLicense: "",
-      arrested: false,
-      descriptionForArrested: "",
-    },
-    emergencyContact: {
-      name: "",
-      phone: "",
-      relationship: "",
-    },
-    employmentHistory: [],
-    printedName: "",
-    date: format(new Date(), "MM/dd/yyyy"),
-    signature: "",
-    termsAgreed: false,
-    creditDisclosure: false,
-    deniedLicense: false,
-    suspendedOrRevoked: false,
-    deniedOrRevokedExplanation: "",
-    isConvicted: false,
-    convictedExplanation: "",
-    employmentGapExplanations: {},
+  const [formData, setFormData] = useState<NewDriverForm>(() => {
+    if (typeof window === "undefined") return DEFAULT_FORM;
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return DEFAULT_FORM;
+      const parsed = JSON.parse(raw);
+      const data = parsed?.v ? parsed.data : parsed;
+
+      // deep-merge with defaults, so new fields get default values
+      const merged = merge(structuredClone(DEFAULT_FORM), data);
+      merged.signature = "";
+
+      // validate and strip unknown keys
+      const { value } = driverFormSchema.validate(merged, {
+        abortEarly: false,
+        stripUnknown: true,
+      });
+
+      return value as NewDriverForm;
+    } catch (e) {
+      console.warn("Failed to read stored form — using defaults", e);
+      return DEFAULT_FORM;
+    }
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [downloadUrl, setDownloadUrl] = useState<string>("");
   const sigCanvas = useRef<SignatureCanvas>(null);
+  const [missingOpen, setMissingOpen] = useState(false);
+  const [missingSteps, setMissingSteps] = useState<
+    { stepIdx: number; stepKey: string; count: number }[]
+  >([]);
 
-  // Load saved form data from localStorage on mount
+  const [activeStep, setActiveStep] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    const raw = localStorage.getItem(STEP_KEY);
+    return raw ? Number(raw) || 0 : 0;
+  });
+
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        setFormData(JSON.parse(stored));
-      } catch (error) {
-        console.error("Error parsing stored form data", error);
-      }
+    if (typeof window === "undefined") return;
+    localStorage.setItem(STEP_KEY, String(activeStep));
+  }, [activeStep]);
+
+  // Map a Joi path to a step index
+  const stepForPath = (path: string): number => {
+    for (let i = 0; i < steps.length; i++) {
+      const keys = keysByStep[i] ?? [];
+      if (keys.some((k) => path === k || path.startsWith(k + "."))) return i;
     }
+    return steps.length - 1; // fallback to last step
+  };
+
+  // avoid saving on very first commit of default/hydrated state
+  const didHydrateRef = useRef(false);
+  useEffect(() => {
+    didHydrateRef.current = true;
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !didHydrateRef.current) return;
+
+    // optional: light debounce to reduce writes
+    const { signature, ...persistable } = formData;
+    const id = setTimeout(() => {
+      const payload = { v: STORAGE_VERSION, data: persistable };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }, 150);
+
+    return () => clearTimeout(id);
+  }, [formData]);
 
   // Update localStorage whenever formData changes
   useEffect(() => {
@@ -400,15 +467,35 @@ const CreditApplicationForm: React.FC = () => {
     const { error } = driverFormSchema.validate(formData, {
       abortEarly: false,
     });
+
     if (error) {
+      // keep per-field messages for inline helpers
       const fieldErrors: Record<string, string> = {};
       error.details.forEach((err) => {
         const key = err.path.join(".");
-        fieldErrors[key] = err.message;
+        if (!fieldErrors[key]) fieldErrors[key] = err.message;
       });
       setErrors(fieldErrors);
+
+      // group by section only
+      const stepCount = new Map<number, number>();
+      error.details.forEach((err) => {
+        const path = err.path.join(".");
+        const idx = stepForPath(path);
+        stepCount.set(idx, (stepCount.get(idx) ?? 0) + 1);
+      });
+      const grouped = Array.from(stepCount.entries())
+        .sort((a, b) => a[0] - b[0])
+        .map(([stepIdx, count]) => ({
+          stepIdx,
+          stepKey: steps[stepIdx],
+          count,
+        }));
+
+      setMissingSteps(grouped);
+      setMissingOpen(true);
       setIsLoading(false);
-      return;
+      return; // stop submission
     }
     try {
       const pdfBytes = await generatePDF({ formData, sigCanvas });
@@ -423,59 +510,18 @@ const CreditApplicationForm: React.FC = () => {
             appliedAt: formData.date,
             firstName: formData.firstName,
             lastName: formData.lastName,
+            applicationType: formData.applicationType,
           },
         },
       }).result;
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
-      // Optionally, you could store this in a new state to display a download button.
       setDownloadUrl(url);
       window.open(url, "_blank");
       // Reset form data.
       setFormData({
-        authorized: false,
-        firstName: "",
-        lastName: "",
-        physicalAddress: [
-          { street: "", city: "", state: "", zip: "", from: "", to: "" },
-        ],
-        socialSecurity: "",
-        dateOfBirth: "",
-        driversLicense: {
-          number: "",
-          state: "",
-          class: "",
-          expDate: "",
-        },
-        phone: "",
-        altPhone: "",
-        drivingExperience: [],
-        accidentRecord: [],
-        trafficConvictions: [],
-        licenseAndCriminalBackground: {
-          deniedLicense: false,
-          suspendedRevokedLicense: false,
-          descriptionForDeniedOrRevokedLicense: "",
-          arrested: false,
-          descriptionForArrested: "",
-        },
-        emergencyContact: {
-          name: "",
-          phone: "",
-          relationship: "",
-        },
-        employmentHistory: [],
-        printedName: "",
-        date: format(new Date(), "yyyy-MM-dd"),
-        signature: "",
-        termsAgreed: false,
-        creditDisclosure: false,
-        deniedLicense: false,
-        suspendedOrRevoked: false,
-        deniedOrRevokedExplanation: "",
-        isConvicted: false,
-        convictedExplanation: "",
-        employmentGapExplanations: {},
+        ...DEFAULT_FORM,
+        date: todayISO,
       });
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       setIsLoading(false);
@@ -484,8 +530,6 @@ const CreditApplicationForm: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  const [activeStep, setActiveStep] = useState(0);
 
   // Step-level validation: check errors only for fields in the current step.
   const validateStep = (step: number) => {
@@ -638,12 +682,10 @@ const CreditApplicationForm: React.FC = () => {
     return (
       <div className="flex flex-col items-center gap-6 justify-center min-h-screen bg-gray-100 dark:bg-gray-800 dark:text-white">
         <div className=" text-center">
-          <Typography variant="h5">
-            Your application has been submitted successfully!
-          </Typography>
+          <Typography variant="h5">{t("submissionSuccessTitle")}</Typography>
         </div>
         <Button variant="contained" color="primary" href="/">
-          Start over
+          {t("startOver")}
         </Button>
       </div>
     );
@@ -656,11 +698,13 @@ const CreditApplicationForm: React.FC = () => {
       <form
         onSubmit={handleSubmit}
         className="max-w-4xl w-full mx-auto p-6 bg-white dark:bg-gray-900 rounded shadow-md ">
-        <div className="flex flex-row gap-4 items-center justify-between  ">
-          <h1 className="text-xl font-bold mb-4 dark:text-white">
-            {t("appTitle")}
-          </h1>
-          <LocaleSwitcher />
+        <div className="flex flex-row gap-4 items-start sm:items-center justify-between pb-4 mb-4 border-b border-slate-800 dark:border-slate-400">
+          <div className="flex flex-col sm:flex-row w-full justify-between">
+            <h1 className="text-xl font-bold mb-4 dark:text-white">
+              {t("appTitle")}
+            </h1>
+            <LocaleSwitcher />
+          </div>
           <Image
             src={rcj_transport.src}
             alt="Logo"
@@ -756,25 +800,23 @@ const CreditApplicationForm: React.FC = () => {
         <div className="w-full  justify-end flex ">
           <div className="w-full mt-5">
             {activeStep > 0 && (
-              <Button onClick={handleBack} variant="outlined">
+              <Button type="button" onClick={handleBack} variant="outlined">
                 {t("back")}
               </Button>
             )}
           </div>
           <div className="w-full mt-5 flex justify-end">
-            {activeStep < steps.length - 1 ? (
-              <Button onClick={handleNext} variant="contained">
+            {activeStep < steps.length - 1 && (
+              <Button type="button" onClick={handleNext} variant="contained">
                 {t("next")}
               </Button>
-            ) : (
+            )}
+            {activeStep === steps.length - 1 && (
               <>
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={
-                    driverFormSchema.validate(formData, { abortEarly: false })
-                      .error !== undefined && sigCanvas.current !== null
-                  }
+                  disabled={isLoading}
                   loading={isLoading}>
                   {t("submit")}
                 </Button>
@@ -782,6 +824,54 @@ const CreditApplicationForm: React.FC = () => {
             )}
           </div>
         </div>
+        <Dialog
+          open={missingOpen}
+          onClose={() => setMissingOpen(false)}
+          maxWidth="xs"
+          fullWidth>
+          <DialogTitle>{t("missingInformation")}</DialogTitle>
+          <DialogContent dividers>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              {t("pleaseReviewTopNav")}
+            </Typography>
+
+            <List dense>
+              {missingSteps.map((ms) => (
+                <ListItemButton
+                  key={ms.stepIdx}
+                  onClick={() => {
+                    setActiveStep(ms.stepIdx);
+                    setMissingOpen(false);
+                  }}>
+                  <ListItemText
+                    primary={t(ms.stepKey)}
+                    secondary={t("issuesCount", {
+                      defaultValue: "{{count}} item(s) to complete",
+                      count: ms.count,
+                    })}
+                    primaryTypographyProps={{ fontWeight: 600 }}
+                  />
+                </ListItemButton>
+              ))}
+            </List>
+          </DialogContent>
+          <DialogActions>
+            <Button type="button" onClick={() => setMissingOpen(false)}>
+              {t("cancel")}
+            </Button>
+            {missingSteps.length > 0 && (
+              <Button
+                type="button"
+                variant="contained"
+                onClick={() => {
+                  setActiveStep(missingSteps[0].stepIdx);
+                  setMissingOpen(false);
+                }}>
+                {t("begin")}
+              </Button>
+            )}
+          </DialogActions>
+        </Dialog>
       </form>
     </div>
   );

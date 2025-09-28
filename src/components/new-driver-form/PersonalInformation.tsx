@@ -3,9 +3,13 @@ import { Address, NewDriverForm } from "@/types/newDriverForm";
 import {
   Button,
   FormControl,
+  FormControlLabel,
   FormHelperText,
+  FormLabel,
   InputLabel,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   TextField,
   Typography,
@@ -17,6 +21,7 @@ import { useTranslation } from "next-i18next";
 import { useEffect, useMemo } from "react";
 import { DeleteIcon } from "../icons/DeleteIcon";
 import { PlusIcon } from "../icons/PlusIcon";
+import { DATE_FMT, monthsCoveredLast3Years } from "@/utils/countTimePassed";
 
 interface PersonalInformationProps {
   formData: NewDriverForm;
@@ -56,47 +61,51 @@ const PersonalInformation = ({
   validateField,
 }: PersonalInformationProps) => {
   const { t } = useTranslation();
+  console.log("ERRORS", errors);
 
+  // const coversThreeYears = useMemo(() => {
+  //   const cutoff = dayjs().subtract(3, "year");
+  //   const now = dayjs().endOf("day");
+  //   // Sum up only the months that lie within [cutoff … now]
+  //   const coveredMonths = formData.physicalAddress
+  //     .map(({ from, to }) => {
+  //       const fromDate = dayjs(from, "L").startOf("day");
+  //       const toDate = dayjs(to, "L").endOf("day");
+  //       // if invalid or entirely before cutoff, ignore it
+  //       if (
+  //         !fromDate.isValid() ||
+  //         !toDate.isValid() ||
+  //         toDate.isBefore(cutoff)
+  //       ) {
+  //         return 0;
+  //       }
+  //       // clamp the range into [cutoff, now]
+  //       const start = fromDate.isBefore(cutoff) ? cutoff : fromDate;
+  //       const end = toDate.isAfter(now) ? now : toDate;
+  //       return end.diff(start, "month", true);
+  //     })
+  //     .reduce((sum, m) => sum + m, 0);
+  //   return coveredMonths >= 36;
+  // }, [formData.physicalAddress]);
   const coversThreeYears = useMemo(() => {
-    const cutoff = dayjs().subtract(3, "year");
-    const now = dayjs().endOf("day");
-    // Sum up only the months that lie within [cutoff … now]
-    const coveredMonths = formData.physicalAddress
-      .map(({ from, to }) => {
-        const fromDate = dayjs(from, "L").startOf("day");
-        const toDate = dayjs(to, "L").endOf("day");
-        // if invalid or entirely before cutoff, ignore it
-        if (
-          !fromDate.isValid() ||
-          !toDate.isValid() ||
-          toDate.isBefore(cutoff)
-        ) {
-          return 0;
-        }
-        // clamp the range into [cutoff, now]
-        const start = fromDate.isBefore(cutoff) ? cutoff : fromDate;
-        const end = toDate.isAfter(now) ? now : toDate;
-        return end.diff(start, "month", true);
-      })
-      .reduce((sum, m) => sum + m, 0);
-    return coveredMonths >= 36;
+    return monthsCoveredLast3Years(formData.physicalAddress) >= 36;
   }, [formData.physicalAddress]);
 
   const canAddAddress = useMemo(() => {
     if (coversThreeYears) return false;
 
     return formData.physicalAddress.every((addr) => {
-      // all required strings non-empty
       const hasText =
-        addr.street.trim() !== "" &&
-        addr.city.trim() !== "" &&
-        addr.state.trim() !== "" &&
-        addr.zip.trim() !== "";
-      // valid dates and from ≤ to
-      const from = dayjs(addr.from, "L");
-      const to = dayjs(addr.to, "L");
+        addr.street.trim() &&
+        addr.city.trim() &&
+        addr.state.trim() &&
+        addr.zip.trim();
+
+      const from = dayjs(addr.from, DATE_FMT, true);
+      const to = dayjs(addr.to, DATE_FMT, true);
       const validDates = from.isValid() && to.isValid() && !to.isBefore(from);
-      return hasText && validDates;
+
+      return Boolean(hasText) && validDates;
     });
   }, [formData.physicalAddress, coversThreeYears]);
 
@@ -111,6 +120,38 @@ const PersonalInformation = ({
 
   return (
     <section className="mb-6">
+      <FormControl
+        required
+        error={!!errors.applicationType}
+        className="mt-2 dark:text-slate-300">
+        <FormLabel>{t("applicationType")}</FormLabel>
+        <RadioGroup
+          row
+          name="applicationType"
+          value={formData.applicationType}
+          onChange={(e) => {
+            const updated = {
+              ...formData,
+              applicationType: e.target
+                .value as NewDriverForm["applicationType"],
+            };
+            setFormData(updated);
+            validateField("applicationType", updated);
+          }}
+          onBlur={() => handleBlur("applicationType")}>
+          <FormControlLabel
+            value="companyDriver"
+            control={<Radio />}
+            label={t("companyDriver")}
+          />
+          <FormControlLabel
+            value="ownerOperator"
+            control={<Radio />}
+            label={t("ownerOperator")}
+          />
+        </RadioGroup>
+        <FormHelperText>{errors.applicationType}</FormHelperText>
+      </FormControl>
       <h2 className="font-semibold mb-2 dark:text-white">
         {t("personalInformation")}
       </h2>
@@ -163,13 +204,19 @@ const PersonalInformation = ({
               errors.dateOfBirth !== undefined && errors.dateOfBirth.length > 0
             }>
             <DatePicker
-              value={dayjs(formData.dateOfBirth)}
+              value={
+                formData.dateOfBirth
+                  ? dayjs(formData.dateOfBirth, DATE_FMT, true)
+                  : null
+              }
+              format={DATE_FMT}
               name="dateOfBirth"
               label={t("dateOfBirth")}
               onChange={(value) => {
                 const updatedForm = {
                   ...formData,
-                  dateOfBirth: dayjs(value)?.format("L") ?? "",
+                  dateOfBirth:
+                    value && value.isValid() ? value.format(DATE_FMT) : "",
                 };
                 setFormData(updatedForm);
                 validateField("dateOfBirth", updatedForm);
@@ -189,7 +236,14 @@ const PersonalInformation = ({
             label={t("phone")}
             name="phone"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e })}
+            onChange={(e) => {
+              const updatedForm = {
+                ...formData,
+                phone: e,
+              };
+              setFormData(updatedForm);
+              validateField("phone", updatedForm);
+            }}
             color="primary"
             defaultCountry="US"
             onBlur={() => handleBlur("phone")}
@@ -201,7 +255,14 @@ const PersonalInformation = ({
             label={t("altPhone")}
             name="altPhone"
             value={formData.altPhone}
-            onChange={(e) => setFormData({ ...formData, altPhone: e })}
+            onChange={(e) => {
+              const updatedForm = {
+                ...formData,
+                altPhone: e,
+              };
+              setFormData(updatedForm);
+              validateField("altPhone", updatedForm);
+            }}
             color="secondary"
             defaultCountry="US"
             onBlur={() => handleBlur("altPhone")}
@@ -234,21 +295,25 @@ const PersonalInformation = ({
               errors["driversLicense.state"] !== undefined &&
               errors["driversLicense.state"].length > 0
             }>
-            <InputLabel id="driversLicense-state-label">State</InputLabel>
+            <InputLabel id="driversLicense-state-label">
+              {t("state")}
+            </InputLabel>
             <Select
               labelId="driversLicense-state-label"
               id="driversLicense-state-select"
               label={t("state")}
               name="driversLicenseState"
-              onChange={(e) =>
-                setFormData({
+              onChange={(e) => {
+                const updatedForm = {
                   ...formData,
                   driversLicense: {
                     ...formData.driversLicense,
                     state: e.target.value,
                   },
-                })
-              }
+                };
+                setFormData(updatedForm);
+                validateField("driversLicense.state", updatedForm);
+              }}
               onBlur={() => handleBlur("driversLicense.state")}
               value={formData.driversLicense.state}
               error={
@@ -286,7 +351,12 @@ const PersonalInformation = ({
               errors["driversLicense.expDate"].length > 0
             }>
             <DatePicker
-              value={dayjs(formData.driversLicense.expDate)}
+              format={DATE_FMT}
+              value={
+                formData.driversLicense.expDate
+                  ? dayjs(formData.driversLicense.expDate, DATE_FMT, true)
+                  : null
+              }
               name="expDate"
               label={t("expDate")}
               onChange={(value) => {
@@ -294,7 +364,8 @@ const PersonalInformation = ({
                   ...formData,
                   driversLicense: {
                     ...formData.driversLicense,
-                    expDate: dayjs(value)?.format("L") ?? "",
+                    expDate:
+                      value && value.isValid() ? value.format(DATE_FMT) : "",
                   },
                 };
                 setFormData(updatedForm);
@@ -356,7 +427,9 @@ const PersonalInformation = ({
                   errors[`physicalAddress.${idx}.state`] !== undefined &&
                   errors[`physicalAddress.${idx}.state`].length > 0
                 }>
-                <InputLabel id="physicalAddress-state-label">State</InputLabel>
+                <InputLabel id="physicalAddress-state-label">
+                  {t("state")}
+                </InputLabel>
                 <Select
                   labelId="physicalAddress-state-label"
                   id="physicalAddress-state-select"
@@ -401,13 +474,14 @@ const PersonalInformation = ({
               <FormControl className="w-full max-w-44">
                 <DatePicker
                   label={t("from")}
-                  value={dayjs(addr.from)}
-                  maxDate={dayjs(formData.physicalAddress[idx].to)}
+                  format={DATE_FMT}
+                  value={addr.from ? dayjs(addr.from, DATE_FMT, true) : null}
+                  maxDate={addr.to ? dayjs(addr.to, DATE_FMT, true) : undefined}
                   onChange={(value) => {
                     handleHomeAddressChange(
                       idx,
                       "from",
-                      dayjs(value).format("L")
+                      value && value.isValid() ? value.format(DATE_FMT) : ""
                     );
                   }}
                   slotProps={{
@@ -420,13 +494,16 @@ const PersonalInformation = ({
               <FormControl className="w-full max-w-44">
                 <DatePicker
                   label={t("to")}
-                  minDate={dayjs(formData.physicalAddress[idx].from)}
-                  value={dayjs(addr.to)}
+                  format={DATE_FMT}
+                  value={addr.to ? dayjs(addr.to, DATE_FMT, true) : null}
+                  minDate={
+                    addr.from ? dayjs(addr.from, DATE_FMT, true) : undefined
+                  }
                   onChange={(value) => {
                     handleHomeAddressChange(
                       idx,
                       "to",
-                      dayjs(value).format("L")
+                      value && value.isValid() ? value.format(DATE_FMT) : ""
                     );
                   }}
                   slotProps={{
@@ -472,7 +549,7 @@ const PersonalInformation = ({
         <h3 className="font-semibold dark:text-white">
           {t("emergencyContact")}
         </h3>
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <TextField
             value={formData.emergencyContact.name}
             label={t("emergencyContact")}
@@ -481,15 +558,17 @@ const PersonalInformation = ({
               errors["emergencyContact.name"].length > 0
             }
             name="emergencyContact.name"
-            onChange={(e) =>
-              setFormData({
+            onChange={(e) => {
+              const updatedForm = {
                 ...formData,
                 emergencyContact: {
                   ...formData.emergencyContact,
                   name: e.target.value,
                 },
-              })
-            }
+              };
+              setFormData(updatedForm);
+              validateField("emergencyContact.name", updatedForm);
+            }}
             onBlur={() => handleBlur("emergencyContact.name")}
             className="w-full p-2 border rounded"
             helperText={errors["emergencyContact.name"]}
@@ -498,12 +577,14 @@ const PersonalInformation = ({
             label={t("phone")}
             name="emergencyContact.phone"
             value={formData.emergencyContact.phone}
-            onChange={(e) =>
-              setFormData({
+            onChange={(e) => {
+              const updatedForm = {
                 ...formData,
                 emergencyContact: { ...formData.emergencyContact, phone: e },
-              })
-            }
+              };
+              setFormData(updatedForm);
+              validateField("emergencyContact.phone", updatedForm);
+            }}
             color="primary"
             defaultCountry="US"
             onBlur={() => handleBlur("emergencyContact.phone")}
@@ -519,15 +600,17 @@ const PersonalInformation = ({
             value={formData.emergencyContact.relationship}
             name="relationship"
             label={t("relationship")}
-            onChange={(e) =>
-              setFormData({
+            onChange={(e) => {
+              const updatedForm = {
                 ...formData,
                 emergencyContact: {
                   ...formData.emergencyContact,
                   relationship: e.target.value,
                 },
-              })
-            }
+              };
+              setFormData(updatedForm);
+              validateField("emergencyContact.relationship", updatedForm);
+            }}
             onBlur={() => handleBlur("emergencyContact.relationship")}
             error={
               errors["emergencyContact.relationship"] !== undefined &&
